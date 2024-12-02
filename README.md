@@ -2,6 +2,8 @@
 
 Snex is a real-time multiplayer Snake game built with Elixir. Players share a game board, collect dots to grow their snakes, and avoid collisions with themselves and others. The game features wraparound movement and fun mechanics like shrinking on collision instead of instant elimination.
 
+<img src="snex.png" width="300"/>
+
 ## How to Download and Run
 
 ### Prerequisites
