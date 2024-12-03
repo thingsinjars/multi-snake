@@ -7,11 +7,11 @@
 # General application configuration
 import Config
 
-config :snake_game,
+config :snex,
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
-config :snake_game, SnakeGameWeb.Endpoint,
+config :snex, SnakeGameWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
@@ -28,12 +28,12 @@ config :snake_game, SnakeGameWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :snake_game, SnakeGame.Mailer, adapter: Swoosh.Adapters.Local
+config :snex, SnakeGame.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
-  snake_game: [
+  snex: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),

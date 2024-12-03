@@ -1,12 +1,12 @@
 defmodule SnakeGameWeb.Endpoint do
-  use Phoenix.Endpoint, otp_app: :snake_game
+  use Phoenix.Endpoint, otp_app: :snex
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    key: "_snake_game_key",
+    key: "_snex_key",
     signing_salt: "KIMNst8m",
     same_site: "Lax"
   ]
@@ -25,7 +25,7 @@ defmodule SnakeGameWeb.Endpoint do
   # when deploying your static files in production.
   plug Plug.Static,
     at: "/",
-    from: :snake_game,
+    from: :snex,
     gzip: false,
     only: SnakeGameWeb.static_paths()
 

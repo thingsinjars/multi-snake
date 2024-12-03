@@ -3,7 +3,7 @@ defmodule SnakeGame.MixProject do
 
   def project do
     [
-      app: :snake_game,
+      app: :snex,
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -60,7 +60,7 @@ defmodule SnakeGame.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.deploy": [
-        "esbuild snake_game --minify",
+        "esbuild snex --minify",
         "phx.digest"
       ]
     ]

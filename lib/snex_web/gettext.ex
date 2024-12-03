@@ -20,5 +20,5 @@ defmodule SnakeGameWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext.Backend, otp_app: :snake_game
+  use Gettext.Backend, otp_app: :snex
 end
