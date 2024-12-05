@@ -21,15 +21,6 @@ config :snex, SnakeGameWeb.Endpoint,
   pubsub_server: SnakeGame.PubSub,
   live_view: [signing_salt: "Di+hc0f+"]
 
-# Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
-config :snex, SnakeGame.Mailer, adapter: Swoosh.Adapters.Local
-
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",

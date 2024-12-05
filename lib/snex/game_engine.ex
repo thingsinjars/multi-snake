@@ -2,17 +2,26 @@ defmodule SnakeGame.GameEngine do
   use GenServer
   require Logger
 
-  defstruct size: [20, 20], players: %{}, dot: nil, status: :waiting
+  @derive {Jason.Encoder, only: [:size, :players, :dot, :status, :board_id]}
+  defstruct size: [20, 20], players: %{}, dot: nil, status: :waiting, board_id: nil
 
-  # Client API
+  @doc """
+  Starts the game engine with the given board ID.
+  """
+  @spec start_link(String.t()) :: GenServer.on_start()
   def start_link(board_id) do
-    GenServer.start_link(
-      __MODULE__,
-      %{board_id: board_id, players: %{}, dot: nil, size: [20, 20], status: :waiting},
-      name: via_tuple(board_id)
-    )
+    initial_state = %__MODULE__{board_id: board_id}
+    GenServer.start_link(__MODULE__, initial_state, name: via_tuple(board_id))
   end
 
+  @doc """
+  Adds a player to the game board.
+
+  ## Parameters
+
+  * `board_id`: The ID of the game board.
+  * `player_id`: The ID of the player to add.
+  """
   def add_player(board_id, player_id) do
     GenServer.call(via_tuple(board_id), {:add_player, player_id})
   end
@@ -36,7 +45,7 @@ defmodule SnakeGame.GameEngine do
   # Server API
   @impl true
   def init(state) do
-    schedule_tick()
+    schedule_next_tick()
     {:ok, state}
   end
 
@@ -74,6 +83,7 @@ defmodule SnakeGame.GameEngine do
     # Protect against updating a non-existent player
     updated_players =
       Map.update!(state.players, player_id, fn player -> %{player | direction: direction} end)
+      |> Map.filter(& !is_nil(&1))
 
     {:noreply, %{state | players: updated_players}}
   end
@@ -103,15 +113,14 @@ defmodule SnakeGame.GameEngine do
   def handle_info(:tick, state) do
     if state.status == :started do
       updated_state = update_and_send(state)
-      schedule_tick()
+      schedule_next_tick()
       {:noreply, updated_state}
     else
-      schedule_tick()
+      schedule_next_tick()
       {:noreply, state}
     end
   end
 
-  # Game logic
   defp update_game_state(state) do
     updated_state =
       Enum.reduce(
@@ -129,7 +138,7 @@ defmodule SnakeGame.GameEngine do
     # Regenerate dot if consumed
     new_dot =
       if updated_state.dot == nil do
-        random_position(state.size)
+        generate_free_dot(state.size, updated_state.players)
       else
         updated_state.dot
       end
@@ -194,11 +203,24 @@ defmodule SnakeGame.GameEngine do
     end
   end
 
-  defp random_position([cols, rows]) do
+  defp random_position([cols, rows]) when cols > 0 and rows > 0  do
     [Enum.random(0..(cols - 1)), Enum.random(0..(rows - 1))]
   end
 
-  defp schedule_tick() do
+  # Choose a dot not occupied by a player's body
+  defp generate_free_dot([cols, rows], players) do
+    occupied_positions =
+      players
+      |> Map.values()
+      |> Enum.flat_map(& &1.body)
+
+    free_positions =
+      for x <- 0..(cols - 1), y <- 0..(rows - 1), [x, y] not in occupied_positions, do: [x, y]
+
+    Enum.random(free_positions)
+  end
+
+  defp schedule_next_tick() do
     # Tick every 100ms
     Process.send_after(self(), :tick, 100)
   end

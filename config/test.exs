@@ -7,12 +7,6 @@ config :snex, SnakeGameWeb.Endpoint,
   secret_key_base: "WKDE0IzsoaJrVETEJI+e5YZ2sDIbNwQ9FdJOPFYhfzCxtcJMggFFx/utE3XpgorR",
   server: false
 
-# In test we don't send emails.
-config :snex, SnakeGame.Mailer, adapter: Swoosh.Adapters.Test
-
-# Disable swoosh api client as it is only required for production adapters.
-config :swoosh, :api_client, false
-
 # Print only warnings and errors during test
 config :logger, level: :warning
 
