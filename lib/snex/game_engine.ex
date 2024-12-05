@@ -86,11 +86,16 @@ defmodule SnakeGame.GameEngine do
     {:noreply, updated_state}
   end
 
+  def update_and_send(state) do
+      updated_state = update_game_state(state)
+      Phoenix.PubSub.broadcast!(SnakeGame.PubSub, "game:#{state.board_id}", {:tick, updated_state})
+      updated_state
+  end
+
   @impl true
   def handle_info(:tick, state) do
     if state.status == :started do
-      updated_state = update_game_state(state)
-      Phoenix.PubSub.broadcast!(SnakeGame.PubSub, "game:#{state.board_id}", {:tick, updated_state})
+      updated_state = update_and_send(state)
       schedule_tick()
       {:noreply, updated_state}
     else
