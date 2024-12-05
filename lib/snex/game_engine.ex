@@ -6,7 +6,11 @@ defmodule SnakeGame.GameEngine do
 
   # Client API
   def start_link(board_id) do
-    GenServer.start_link(__MODULE__, %{board_id: board_id, players: %{}, dot: nil, size: [20, 20], status: :waiting}, name: via_tuple(board_id))
+    GenServer.start_link(
+      __MODULE__,
+      %{board_id: board_id, players: %{}, dot: nil, size: [20, 20], status: :waiting},
+      name: via_tuple(board_id)
+    )
   end
 
   def add_player(board_id, player_id) do
@@ -53,6 +57,7 @@ defmodule SnakeGame.GameEngine do
       "game:#{state.board_id}",
       {:update, updated_state}
     )
+
     {:reply, :ok, updated_state}
   end
 
@@ -67,7 +72,9 @@ defmodule SnakeGame.GameEngine do
   @impl true
   def handle_cast({:move_player, player_id, direction}, state) do
     # Protect against updating a non-existent player
-    updated_players = Map.update!(state.players, player_id, fn player -> %{player | direction: direction} end)
+    updated_players =
+      Map.update!(state.players, player_id, fn player -> %{player | direction: direction} end)
+
     {:noreply, %{state | players: updated_players}}
   end
 
@@ -87,9 +94,9 @@ defmodule SnakeGame.GameEngine do
   end
 
   def update_and_send(state) do
-      updated_state = update_game_state(state)
-      Phoenix.PubSub.broadcast!(SnakeGame.PubSub, "game:#{state.board_id}", {:tick, updated_state})
-      updated_state
+    updated_state = update_game_state(state)
+    Phoenix.PubSub.broadcast!(SnakeGame.PubSub, "game:#{state.board_id}", {:tick, updated_state})
+    updated_state
   end
 
   @impl true
@@ -107,9 +114,17 @@ defmodule SnakeGame.GameEngine do
   # Game logic
   defp update_game_state(state) do
     updated_state =
-      Enum.reduce(Map.keys(state.players), %{players: state.players, dot: state.dot}, fn player_id, acc ->
-        move_player_and_check_dot(player_id, %{players: acc.players, dot: acc.dot, size: state.size})
-      end)
+      Enum.reduce(
+        Map.keys(state.players),
+        %{players: state.players, dot: state.dot},
+        fn player_id, acc ->
+          move_player_and_check_dot(player_id, %{
+            players: acc.players,
+            dot: acc.dot,
+            size: state.size
+          })
+        end
+      )
 
     # Regenerate dot if consumed
     new_dot =
@@ -165,7 +180,8 @@ defmodule SnakeGame.GameEngine do
               length: player.length + 1
           })
 
-        %{players: updated_players, dot: nil} # Dot will be regenerated
+        # Dot will be regenerated
+        %{players: updated_players, dot: nil}
 
       true ->
         # Normal movement: shift the snake body
@@ -178,13 +194,13 @@ defmodule SnakeGame.GameEngine do
     end
   end
 
-
   defp random_position([cols, rows]) do
     [Enum.random(0..(cols - 1)), Enum.random(0..(rows - 1))]
   end
 
   defp schedule_tick() do
-    Process.send_after(self(), :tick, 100) # Tick every 100ms
+    # Tick every 100ms
+    Process.send_after(self(), :tick, 100)
   end
 
   defp via_tuple(board_id), do: {:via, Registry, {SnakeGame.GameRegistry, board_id}}

@@ -11,13 +11,15 @@ defmodule SnakeGameWeb.GameChannel do
     # Subscribe to PubSub for game updates
     Phoenix.PubSub.subscribe(SnakeGame.PubSub, "game:#{board_id}")
 
-    {:ok, %{"board_id" => board_id}, assign(socket, :board_id, board_id) |> assign(:player_id, player_id)}
+    {:ok, %{"board_id" => board_id},
+     assign(socket, :board_id, board_id) |> assign(:player_id, player_id)}
   end
 
   # Handle the start event which starts the game
   def handle_in("start", _params, socket) do
     board_id = socket.assigns.board_id
-    GameEngine.start_game(board_id)  # Now start the game when 'start' event is received
+    # Now start the game when 'start' event is received
+    GameEngine.start_game(board_id)
 
     # Send a broadcast that the game has started
     broadcast!(socket, "started", %{board_id: board_id})
@@ -43,7 +45,12 @@ defmodule SnakeGameWeb.GameChannel do
 
   # Handle player moves
   def handle_in("move", %{"direction" => direction}, socket) do
-    GameEngine.move_player(socket.assigns.board_id, socket.assigns.player_id, String.to_atom(direction))
+    GameEngine.move_player(
+      socket.assigns.board_id,
+      socket.assigns.player_id,
+      String.to_atom(direction)
+    )
+
     {:noreply, socket}
   end
 
