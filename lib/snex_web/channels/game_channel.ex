@@ -24,8 +24,6 @@ defmodule SnakeGameWeb.GameChannel do
     # Send a broadcast that the game has started
     broadcast!(socket, "started", %{board_id: board_id})
 
-    # Send the updated game state to the client
-    # board_state = GameEngine.get_state(board_id)
     {:reply, {:ok, %{status: "started"}}, socket}
   end
 
@@ -35,11 +33,6 @@ defmodule SnakeGameWeb.GameChannel do
     player_id = socket.assigns.player_id
     GameEngine.remove_player(board_id, player_id)
 
-    # # Send a broadcast that the game has started
-    # broadcast!(socket, "started", %{board_id: board_id})
-
-    # Send the updated game state to the client
-    # board_state = GameEngine.get_state(board_id)
     {:reply, {:ok, %{status: "started"}}, socket}
   end
 

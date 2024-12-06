@@ -148,59 +148,66 @@ defmodule SnakeGame.GameEngine do
 
   defp move_player_and_check_dot(player_id, %{players: players, dot: dot, size: [max_x, max_y]}) do
     player = Map.fetch!(players, player_id)
-    [x, y] = hd(player.body)
+    [x, y] = List.first(player.body)
 
-    # Calculate the new head position
-    new_head =
-      case player.direction do
-        :up -> [x, rem(y - 1 + max_y, max_y)]
-        :down -> [x, rem(y + 1, max_y)]
-        :left -> [rem(x - 1 + max_x, max_x), y]
-        :right -> [rem(x + 1, max_x), y]
-      end
+    new_head = calculate_new_position(x, y, player.direction, max_x, max_y)
 
-    # Check collision (with self or other players)
-    collision =
-      Enum.any?(players, fn {_id, other_player} ->
-        Enum.member?(other_player.body, new_head)
-      end)
+    # Check collision with any snake body
+    collision? = players
+                |> Enum.any?(fn {_id, other_player} ->
+                  new_head in other_player.body
+                end)
 
-    cond do
-      collision ->
-        # Shorten the snake if a collision occurs
-        new_body = Enum.slice(player.body, 0, player.length - 1)
+    case {collision?, new_head == dot} do
+      {true, _} ->
+        handle_collision(players, player, player_id, dot)
 
-        # Remove player if their body is fully consumed
-        updated_players =
-          if Enum.empty?(new_body) do
-            Map.delete(players, player_id)
-          else
-            Map.put(players, player_id, %{player | body: new_body, length: player.length - 1})
-          end
+      {false, true} ->
+        handle_dot_collision(players, player, player_id, new_head)
 
-        %{players: updated_players, dot: dot}
-
-      new_head == dot ->
-        # Consume dot: grow the snake and increase length
-        updated_players =
-          Map.put(players, player_id, %{
-            player
-            | body: [new_head | player.body],
-              length: player.length + 1
-          })
-
-        # Dot will be regenerated
-        %{players: updated_players, dot: nil}
-
-      true ->
-        # Normal movement: shift the snake body
-        new_body = [new_head | Enum.slice(player.body, 0, player.length - 1)]
-
-        updated_players =
-          Map.put(players, player_id, %{player | body: new_body})
-
-        %{players: updated_players, dot: dot}
+      {false, false} ->
+        handle_movement(players, player, player_id, new_head, dot)
     end
+  end
+
+  defp calculate_new_position(x, y, direction, max_x, max_y) do
+    case direction do
+      :up -> [x, rem(y - 1 + max_y, max_y)]
+      :down -> [x, rem(y + 1, max_y)]
+      :left -> [rem(x - 1 + max_x, max_x), y]
+      :right -> [rem(x + 1, max_x), y]
+    end
+  end
+
+  defp handle_collision(players, player, player_id, dot) do
+    new_body = Enum.slice(player.body, 0, player.length - 1)
+
+    updated_players = if Enum.empty?(new_body) do
+      Map.delete(players, player_id)
+    else
+      Map.put(players, player_id, %{player |
+        body: new_body,
+        length: player.length - 1
+      })
+    end
+
+    %{players: updated_players, dot: dot}
+  end
+
+  defp handle_dot_collision(players, player, player_id, new_head) do
+    updated_players = Map.put(players, player_id, %{player |
+      body: [new_head | player.body],
+      length: player.length + 1
+    })
+
+    %{players: updated_players, dot: nil}
+  end
+
+  defp handle_movement(players, player, player_id, new_head, dot) do
+    new_body = [new_head | Enum.slice(player.body, 0, player.length - 1)]
+    updated_players = Map.put(players, player_id, %{player | body: new_body})
+
+    %{players: updated_players, dot: dot}
   end
 
   defp random_position([cols, rows]) when cols > 0 and rows > 0  do
